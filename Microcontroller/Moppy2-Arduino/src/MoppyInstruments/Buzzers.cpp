@@ -28,7 +28,9 @@ namespace instruments
  */
   int Buzzers::currentState[] = {0, LOW, LOW, LOW, LOW, LOW, LOW, LOW, LOW, LOW, LOW, LOW, LOW, LOW, LOW, LOW, LOW, LOW, LOW, LOW};
 
-  const unsigned int Buzzers::buzzerPins[] = {0, 2, 4, 5, 12, 13, 14, 15, 16, 17, 18, 19, 21, 22, 23, 25, 26, 27, 32, 33}; // 19 Buzzers max
+  const unsigned int Buzzers::buzzerPins[] = {0, 15, 2, 4, 16, 17, 5, 18, 19, 21, 22, 23, 32, 33, 25, 26, 27, 14, 12, 13}; // 19 Buzzers max
+
+                                             
 
   // Current period assigned to each drive.  0 = off.  Each period is two-ticks (as defined by
   // TIMER_RESOLUTION in MoppyInstrument.h) long.
