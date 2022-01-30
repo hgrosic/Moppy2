@@ -17,6 +17,12 @@
 MoppyInstrument *instrument = new instruments::FloppyDrives();
 #endif
 
+// Buzzers directly connected to the Arduino's digital pins
+#ifdef INSTRUMENT_BUZZERS
+#include "MoppyInstruments/Buzzers.h"
+MoppyInstrument *instrument = new instruments::Buzzers();
+#endif
+
 // EasyDriver stepper motor driver
 #ifdef INSTRUMENT_EASYDRIVER
 #include "MoppyInstruments/EasyDrivers.h"

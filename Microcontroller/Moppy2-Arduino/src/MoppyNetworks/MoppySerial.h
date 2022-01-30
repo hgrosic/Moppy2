@@ -12,7 +12,11 @@
 #include "../MoppyMessageConsumer.h"
 #include "MoppyNetwork.h"
 
-#define MOPPY_BAUD_RATE 57600
+#if defined(ARDUINO_ARCH_ESP8266) || defined(ARDUINO_ARCH_ESP32)
+  #define MOPPY_BAUD_RATE 115200
+#else
+  #define MOPPY_BAUD_RATE 57600
+#endif
 
 class MoppySerial {
   public:

@@ -2,8 +2,8 @@
  * MoppyConfig.h
  */
 
-#ifndef SRC_MOPPYCONFIG_H_
-#define SRC_MOPPYCONFIG_H_
+#ifndef MOPPYCONFIG
+#define MOPPYCONFIG
 
 ////
 // Moppy Device configuration
@@ -13,11 +13,13 @@
 // Uncomment **ONLY ONE** of these instruments
 ////
 
-#define INSTRUMENT_FLOPPIES
+//#define INSTRUMENT_FLOPPIES
+#define INSTRUMENT_BUZZERS
 //#define INSTRUMENT_EASYDRIVER
 //#define INSTRUMENT_L298N
 //#define INSTRUMENT_SHIFTED_FLOPPIES
 //#define INSTRUMENT_SHIFT_REGISTER
+
 
 ////
 // Uncomment **ONLY ONE** of these networks
@@ -33,12 +35,12 @@
 
 // Device address for this microcontroller (only messages sent to this address
 // will be processed.
-#define DEVICE_ADDRESS 0x01
+#define DEVICE_ADDRESS 0x02
 
 // Minimum and maximum sub-addresses that messages will be processed for.
 // E.g. if you have 8 drives this would be 1 and 8.  If you have 16, 1 and 16.
 #define MIN_SUB_ADDRESS 1
-#define MAX_SUB_ADDRESS 8
+#define MAX_SUB_ADDRESS 19
 
 
-#endif /* SRC_MOPPYCONFIG_H_ */
+#endif /* MOPPYCONFIG */
