@@ -32,22 +32,34 @@ namespace instruments {
     static unsigned int MIN_POSITION[];
     static unsigned int MAX_POSITION[];
     static unsigned int currentPosition[];
-    static int currentState[];
+    static unsigned int currentStepState[];
+    static unsigned int currentDirState[];
     static unsigned int currentPeriod[];
     static unsigned int currentTick[];
     static unsigned int originalPeriod[];
+    // Array of STEP pin numbers for the used board pinout 
+    static const unsigned int stepPins[];
+    // Array of DIR pin numbers for the used board pinout
+    static const unsigned int dirPins[];
 
     // First drive being used for floppies, and the last drive.  Used for calculating
     // step and direction pins.
+    #if defined(ARDUINO_AVR_UNO) || defined(ARDUINO_ARCH_ESP32)
     static const byte FIRST_DRIVE = 1;
-    static const byte LAST_DRIVE = 8; // This sketch can handle only up to 9 drives (the max for Arduino Uno)
+    static const byte LAST_DRIVE = 9; // This sketch can handle only up to 9 drives (the max for Arduino Uno)
+    #elif ARDUINO_AVR_MEGA2560
+    static const byte FIRST_DRIVE = 1;
+    static const byte LAST_DRIVE = 16;
+    #elif ARDUINO_ARCH_ESP8266
+    //TODO Add definitions for ESP8266
+    #endif
 
     // Maximum note number to attempt to play on floppy drives.  It's possible higher notes may work,
     // but they may also cause instability.
     static const byte MAX_FLOPPY_NOTE = 71;
 
     static void resetAll();
-    static void togglePin(byte driveNum, byte pin, byte direction_pin);
+    static void togglePin(byte driveNum);
     static void haltAllDrives();
     static void reset(byte driveNum);
     static void tick();
