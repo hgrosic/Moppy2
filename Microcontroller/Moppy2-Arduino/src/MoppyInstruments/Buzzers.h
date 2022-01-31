@@ -46,7 +46,7 @@ namespace instruments {
     static const byte MAX_BUZZER_NOTE = 71;
 
     static void resetAll();
-    static void togglePin(byte pin);
+    static void togglePin(byte buzzerNum);
     static void haltAllBuzzers();
     static void reset(byte buzzerNum);
     static void tick();

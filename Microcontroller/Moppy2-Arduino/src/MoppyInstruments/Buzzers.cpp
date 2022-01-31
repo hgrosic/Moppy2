@@ -175,24 +175,24 @@ Additionally, the ICACHE_RAM_ATTR helps avoid crashes with WiFi libraries, but m
    For each drive, count the number of
    ticks that pass, and toggle the pin if the current period is reached.
    */
-    for (unsigned int i = FIRST_BUZZER; i <= LAST_BUZZER; i++)
+    for (unsigned int b = FIRST_BUZZER; b <= LAST_BUZZER; b++)
     {
-      if (currentPeriod[i] > 0)
+      if (currentPeriod[b] > 0)
       {
-        currentTick[i]++;
-        if (currentTick[i] >= currentPeriod[i])
+        currentTick[b]++;
+        if (currentTick[b] >= currentPeriod[b])
         {
-          togglePin(buzzerPins[i]);
-          currentTick[i] = 0;
+          togglePin(b);
+          currentTick[b] = 0;
         }
       }
     }
   }
 
-  void Buzzers::togglePin(byte pin)
+  void Buzzers::togglePin(byte buzzerNum)
   {
-    digitalWrite(pin, currentState[pin]);
-    currentState[pin] = ~currentState[pin];
+    digitalWrite(buzzerPins[buzzerNum], currentState[buzzerNum]);
+    currentState[buzzerNum] = ~currentState[buzzerNum];
   }
 #pragma GCC pop_options
 
@@ -211,9 +211,9 @@ Additionally, the ICACHE_RAM_ATTR helps avoid crashes with WiFi libraries, but m
   // Immediately stops all drives
   void Buzzers::haltAllBuzzers()
   {
-    for (unsigned int i = FIRST_BUZZER; i <= LAST_BUZZER; i++)
+    for (byte b = FIRST_BUZZER; b <= LAST_BUZZER; b++)
     {
-      currentPeriod[i] = 0;
+      currentPeriod[b] = 0;
     }
   }
 
