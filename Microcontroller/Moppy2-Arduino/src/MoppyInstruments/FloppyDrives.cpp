@@ -24,12 +24,11 @@ namespace instruments
  */
   unsigned int FloppyDrives::MIN_POSITION[] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
   unsigned int FloppyDrives::MAX_POSITION[] = {158, 158, 158, 158, 158, 158, 158, 158, 158, 158};
-  /*Array to keep track of state of each pin.  Even indexes track the control-pins for toggle purposes.  Odd indexes
- track direction-pins.  LOW = forward, HIGH=reverse
- */
+  // Array to keep track of the state of each Step pin for toggle purposes.
   unsigned int FloppyDrives::currentStepState[] = {0, LOW, LOW, LOW, LOW, LOW, LOW, LOW, LOW, LOW};
+  // Array to keep track of the state of each Direction pin (LOW = forward, HIGH=reverse).
   unsigned int FloppyDrives::currentDirState[] = {0, LOW, LOW, LOW, LOW, LOW, LOW, LOW, LOW, LOW};
-  //Array to track the current position of each floppy head.
+  // Array to track the current position of each floppy head.
   unsigned int FloppyDrives::currentPosition[] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
   // Current period assigned to each drive.  0 = off.  Each period is two-ticks (as defined by
   // TIMER_RESOLUTION in MoppyInstrument.h) long.
@@ -59,17 +58,19 @@ namespace instruments
 #endif
 
 #ifdef ARDUINO_AVR_UNO
-  const unsigned int FloppyDrives::stepPins[] = {0, 2, 4, 6, 8, 10, 12, 14, 16, 18};
-  const unsigned int FloppyDrives::dirPins[] = {0, 3, 5, 7, 9, 11, 13, 15, 17, 19};
+  // Array of STEP pin numbers for the used board pinout 
+  const unsigned int FloppyDrives::STEP_PIN[] = {0, 2, 4, 6, 8, 10, 12, 14, 16, 18};
+  // Array of DIR pin numbers for the used board pinout
+  const unsigned int FloppyDrives::DIR_PIN[] = {0, 3, 5, 7, 9, 11, 13, 15, 17, 19};
 #elif ARDUINO_AVR_MEGA2560
-  const unsigned int FloppyDrives::stepPins[] = {0, 22, 24, 26, 28, 30, 32, 34, 36, 38, 40, 42, 44, 46, 48, 50, 52};
-  const unsigned int FloppyDrives::dirPins[] = {0, 23, 25, 27, 29, 31, 33, 35, 37, 39, 41, 43, 45, 47, 49, 51, 53};
+  const unsigned int FloppyDrives::STEP_PIN[] = {0, 22, 24, 26, 28, 30, 32, 34, 36, 38, 40, 42, 44, 46, 48, 50, 52};
+  const unsigned int FloppyDrives::DIR_PIN[] = {0, 23, 25, 27, 29, 31, 33, 35, 37, 39, 41, 43, 45, 47, 49, 51, 53};
 #elif ARDUINO_ARCH_ESP32
-  const unsigned int FloppyDrives::stepPins[] = {0, 15, 4, 17, 18, 21, 23, 33, 26, 14};
-  const unsigned int FloppyDrives::dirPins[] = {0, 2, 16, 5, 19, 22, 32, 25, 27, 12};
+  const unsigned int FloppyDrives::STEP_PIN[] = {0, 15, 4, 17, 18, 21, 23, 33, 26, 14};
+  const unsigned int FloppyDrives::DIR_PIN[] = {0, 2, 16, 5, 19, 22, 32, 25, 27, 12};
 #elif ARDUINO_ARCH_ESP8266
-  const unsigned int FloppyDrives::stepPins[] = {0, 5, 0, 15, 12};
-  const unsigned int FloppyDrives::dirPins[] = {0, 4, 2, 13, 14};
+  const unsigned int FloppyDrives::STEP_PIN[] = {0, 5, 0, 15, 12};
+  const unsigned int FloppyDrives::DIR_PIN[] = {0, 4, 2, 13, 14};
 #endif
 
   void FloppyDrives::setup()
@@ -77,8 +78,8 @@ namespace instruments
     // Prepare pins
     for (byte d = FIRST_DRIVE; d <= LAST_DRIVE; d++)
     {
-      pinMode(stepPins[d], OUTPUT);
-      pinMode(dirPins[d], OUTPUT);
+      pinMode(STEP_PIN[d], OUTPUT);
+      pinMode(DIR_PIN[d], OUTPUT);
     }
     // With all pins setup, let's do a first run reset
     resetAll();
@@ -247,12 +248,12 @@ Additionally, the ICACHE_RAM_ATTR helps avoid crashes with WiFi libraries, but m
     if (currentPosition[driveNum] >= MAX_POSITION[driveNum])
     {
       currentDirState[driveNum] = HIGH;
-      digitalWrite(dirPins[driveNum], HIGH);
+      digitalWrite(DIR_PIN[driveNum], HIGH);
     }
     else if (currentPosition[driveNum] <= MIN_POSITION[driveNum])
     {
       currentDirState[driveNum] = LOW;
-      digitalWrite(dirPins[driveNum], LOW);
+      digitalWrite(DIR_PIN[driveNum], LOW);
     }
 
     //Update currentPosition
@@ -265,8 +266,8 @@ Additionally, the ICACHE_RAM_ATTR helps avoid crashes with WiFi libraries, but m
       currentPosition[driveNum]++;
     }
 
-    //Pulse the control pin
-    digitalWrite(stepPins[driveNum], currentStepState[driveNum]);
+    //Pulse the STEP pin
+    digitalWrite(STEP_PIN[driveNum], currentStepState[driveNum]);
     currentStepState[driveNum] = ~currentStepState[driveNum];
   }
 #pragma GCC pop_options
@@ -297,16 +298,16 @@ Additionally, the ICACHE_RAM_ATTR helps avoid crashes with WiFi libraries, but m
   {
     currentPeriod[driveNum] = 0; // Stop note
 
-    digitalWrite(dirPins[driveNum], HIGH); // Go in reverse
+    digitalWrite(DIR_PIN[driveNum], HIGH); // Go in reverse
     for (unsigned int s = 0; s < MAX_POSITION[driveNum]; s += 2)
     { // Half max because we're stepping directly (no toggle)
-      digitalWrite(stepPins[driveNum], HIGH);
-      digitalWrite(stepPins[driveNum], LOW);
+      digitalWrite(STEP_PIN[driveNum], HIGH);
+      digitalWrite(STEP_PIN[driveNum], LOW);
       delay(5);
     }
     currentPosition[driveNum] = 0;    // We're reset.
     currentStepState[driveNum] = LOW; // Last step state is LOW
-    digitalWrite(dirPins[driveNum], LOW);
+    digitalWrite(DIR_PIN[driveNum], LOW);
     currentDirState[driveNum] = LOW; // Ready to go forward.
     setMovement(driveNum, true);     // Set movement to true by default
   }
@@ -319,7 +320,7 @@ Additionally, the ICACHE_RAM_ATTR helps avoid crashes with WiFi libraries, but m
     for (byte d = FIRST_DRIVE; d <= LAST_DRIVE; d++)
     {
       currentPeriod[d] = 0;
-      digitalWrite(dirPins[d], HIGH);
+      digitalWrite(DIR_PIN[d], HIGH);
     }
 
     // Reset all drives together
@@ -327,8 +328,8 @@ Additionally, the ICACHE_RAM_ATTR helps avoid crashes with WiFi libraries, but m
     { //Half max because we're stepping directly (no toggle); grab max from index 0
       for (byte d = FIRST_DRIVE; d <= LAST_DRIVE; d++)
       {
-        digitalWrite(stepPins[d], HIGH);
-        digitalWrite(stepPins[d], LOW);
+        digitalWrite(STEP_PIN[d], HIGH);
+        digitalWrite(STEP_PIN[d], LOW);
       }
       delay(5);
     }
@@ -338,7 +339,7 @@ Additionally, the ICACHE_RAM_ATTR helps avoid crashes with WiFi libraries, but m
     {
       currentPosition[d] = 0;    // We're reset.
       currentStepState[d] = LOW; // Last step state is LOW
-      digitalWrite(dirPins[d], LOW);
+      digitalWrite(DIR_PIN[d], LOW);
       currentDirState[d] = LOW; // Ready to go forward.
       setMovement(d, true);     // Set movement to true by default
     }

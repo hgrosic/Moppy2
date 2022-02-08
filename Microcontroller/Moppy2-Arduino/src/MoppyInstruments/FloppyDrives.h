@@ -37,10 +37,8 @@ namespace instruments {
     static unsigned int currentPeriod[];
     static unsigned int currentTick[];
     static unsigned int originalPeriod[];
-    // Array of STEP pin numbers for the used board pinout 
-    static const unsigned int stepPins[];
-    // Array of DIR pin numbers for the used board pinout
-    static const unsigned int dirPins[];
+    static const unsigned int STEP_PIN[];
+    static const unsigned int DIR_PIN[];
 
     // First drive being used for floppies, and the last drive.  Used for calculating
     // step and direction pins.
