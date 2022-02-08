@@ -46,12 +46,13 @@ namespace instruments {
     // step and direction pins.
     #if defined(ARDUINO_AVR_UNO) || defined(ARDUINO_ARCH_ESP32)
     static const byte FIRST_DRIVE = 1;
-    static const byte LAST_DRIVE = 9; // This sketch can handle only up to 9 drives (the max for Arduino Uno)
+    static const byte LAST_DRIVE = 9;
     #elif ARDUINO_AVR_MEGA2560
     static const byte FIRST_DRIVE = 1;
     static const byte LAST_DRIVE = 16;
     #elif ARDUINO_ARCH_ESP8266
-    //TODO Add definitions for ESP8266
+    static const byte FIRST_DRIVE = 1
+    static const byte LAST_DRIVE = 4
     #endif
 
     // Maximum note number to attempt to play on floppy drives.  It's possible higher notes may work,

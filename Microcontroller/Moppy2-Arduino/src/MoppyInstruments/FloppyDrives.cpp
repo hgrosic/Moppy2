@@ -10,9 +10,9 @@ namespace instruments
 {
 
   /*NOTE: The arrays below contain unused zero-indexes to avoid having to do extra
- * math to shift the 1-based subAddresses to 0-based indexes here.  Unlike the previous
- * version of Moppy, we *will* be doing math to calculate which drive maps to which pin,
- * so there are as many values as drives (plus the extra zero-index)
+ * math to shift the 1-based subAddresses to 0-based indexes here. The i-th index
+ * of each array corresponds to the the i-th floppy drive (except the extra 0 index).
+ *
  */
 
 #if defined(ARDUINO_AVR_UNO) || defined(ARDUINO_ARCH_ESP32)
@@ -48,7 +48,14 @@ namespace instruments
   unsigned int FloppyDrives::currentTick[] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
   unsigned int FloppyDrives::originalPeriod[] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
 #elif ARDUINO_ARCH_ESP8266
-//TODO Add arrays for ESP8266
+  unsigned int FloppyDrives::MIN_POSITION[] = {0, 0, 0, 0, 0};
+  unsigned int FloppyDrives::MAX_POSITION[] = {158, 158, 158, 158, 158};
+  unsigned int FloppyDrives::currentStepState[] = {0, LOW, LOW, LOW, LOW};
+  unsigned int FloppyDrives::currentDirState[] = {0, LOW, LOW, LOW, LOW};
+  unsigned int FloppyDrives::currentPosition[] = {0, 0, 0, 0, 0};
+  unsigned int FloppyDrives::currentPeriod[] = {0, 0, 0, 0, 0};
+  unsigned int FloppyDrives::currentTick[] = {0, 0, 0, 0, 0};
+  unsigned int FloppyDrives::originalPeriod[] = {0, 0, 0, 0, 0};
 #endif
 
 #ifdef ARDUINO_AVR_UNO
@@ -61,7 +68,8 @@ namespace instruments
   const unsigned int FloppyDrives::stepPins[] = {0, 15, 4, 17, 18, 21, 23, 33, 26, 14};
   const unsigned int FloppyDrives::dirPins[] = {0, 2, 16, 5, 19, 22, 32, 25, 27, 12};
 #elif ARDUINO_ARCH_ESP8266
-//TODO Add pins for ESP8266
+  const unsigned int FloppyDrives::stepPins[] = {0, 5, 0, 15, 12};
+  const unsigned int FloppyDrives::dirPins[] = {0, 4, 2, 13, 14};
 #endif
 
   void FloppyDrives::setup()
