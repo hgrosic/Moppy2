@@ -2,8 +2,8 @@
  * MoppyConfig.h
  */
 
-#ifndef MOPPYCONFIG
-#define MOPPYCONFIG
+#ifndef SRC_MOPPYCONFIG_H_
+#define SRC_MOPPYCONFIG_H_
 
 ////
 // Moppy Device configuration
@@ -43,4 +43,4 @@
 #define MAX_SUB_ADDRESS 7
 
 
-#endif /* MOPPYCONFIG */
+#endif /* SRC_MOPPYCONFIG_H_ */
