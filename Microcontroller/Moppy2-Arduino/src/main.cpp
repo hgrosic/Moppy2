@@ -23,6 +23,12 @@ MoppyInstrument *instrument = new instruments::FloppyDrives();
 MoppyInstrument *instrument = new instruments::Buzzers();
 #endif
 
+// TODO
+#ifdef INSTRUMENT_HARDDRIVES
+#include "MoppyInstruments/HardDrives.h"
+MoppyInstrument *instrument = new instruments::HardDrives();
+#endif
+
 // EasyDriver stepper motor driver
 #ifdef INSTRUMENT_EASYDRIVER
 #include "MoppyInstruments/EasyDrivers.h"

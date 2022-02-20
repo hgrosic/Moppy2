@@ -14,8 +14,9 @@
 // If the device is a gateway, select INTRUMENT_NONE
 ////
 
-#define INSTRUMENT_FLOPPIES
+//#define INSTRUMENT_FLOPPIES
 //#define INSTRUMENT_BUZZERS
+#define INSTRUMENT_HARDDRIVES
 //#define INSTRUMENT_EASYDRIVER
 //#define INSTRUMENT_L298N
 //#define INSTRUMENT_SHIFTED_FLOPPIES
@@ -39,7 +40,7 @@
 
 // Device address for this microcontroller (only messages sent to this address
 // will be processed.
-#define DEVICE_ADDRESS 0x01
+#define DEVICE_ADDRESS 0x03
 
 // Minimum and maximum sub-addresses that messages will be processed for.
 // E.g. if you have 8 drives this would be 1 and 8.  If you have 16, 1 and 16.
