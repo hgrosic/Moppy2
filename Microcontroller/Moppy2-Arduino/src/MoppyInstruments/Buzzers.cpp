@@ -117,10 +117,7 @@ namespace instruments
 
   void Buzzers::dev_noteOn(uint8_t subAddress, uint8_t payload[])
   {
-    if (payload[0] <= MAX_BUZZER_NOTE)
-    {
-      currentPeriod[subAddress] = originalPeriod[subAddress] = noteDoubleTicks[payload[0]];
-    }
+    currentPeriod[subAddress] = originalPeriod[subAddress] = noteDoubleTicks[payload[0]];
   }
 
   void Buzzers::dev_noteOff(uint8_t subAddress, uint8_t payload[])
