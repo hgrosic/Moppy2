@@ -39,7 +39,7 @@ namespace instruments {
     // First drive being used for floppies, and the last drive.  Used for calculating
     // step and direction pins.
     static const byte FIRST_BUZZER = 1;
-    static const byte LAST_BUZZER = 19; //TODO Set this one to a correct 19           This sketch can handle only up to 9 drives (the max for Arduino Uno)
+    static const byte LAST_BUZZER = 12; //TODO Set this one to a correct 19           This sketch can handle only up to 9 drives (the max for Arduino Uno)
 
     // Maximum note number to attempt to play on floppy drives.  It's possible higher notes may work,
     // but they may also cause instability.

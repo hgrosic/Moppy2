@@ -12,6 +12,7 @@
 ////
 // Uncomment **ONLY ONE** of these instruments
 ////
+
 //#define INSTRUMENT_FLOPPIES
 //#define INSTRUMENT_BUZZERS
 //#define INSTRUMENT_HARDDRIVES
@@ -25,6 +26,7 @@
 // Uncomment **ONLY ONE** of these networks
 // If the device is a **GATEWAY**, make sure that INSTRUMENT_GATEWAY is defined as well  
 ////
+
 //#define NETWORK_SERIAL
 //#define NETWORK_UDP
 //#define NETWORK_ESPNOW

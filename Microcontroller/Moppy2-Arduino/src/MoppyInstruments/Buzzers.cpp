@@ -26,21 +26,21 @@ namespace instruments
   /*Array to keep track of state of each pin.  Even indexes track the control-pins for toggle purposes.  Odd indexes
  track direction-pins.  LOW = forward, HIGH=reverse
  */
-  int Buzzers::currentState[] = {0, LOW, LOW, LOW, LOW, LOW, LOW, LOW, LOW, LOW, LOW, LOW, LOW, LOW, LOW, LOW, LOW, LOW, LOW, LOW};
+  int Buzzers::currentState[] = {0, LOW, LOW, LOW, LOW, LOW, LOW, LOW, LOW, LOW, LOW, LOW, LOW};
 
-  const unsigned int Buzzers::buzzerPins[] = {0, 15, 2, 4, 16, 17, 5, 18, 19, 21, 22, 23, 32, 33, 25, 26, 27, 14, 12, 13}; // 19 Buzzers max
+  const unsigned int Buzzers::buzzerPins[] = {0, 15, 2, 4, 16, 17, 5, 18, 19, 21, 22, 23, 32}; // 12 Buzzers max
 
                                              
 
   // Current period assigned to each drive.  0 = off.  Each period is two-ticks (as defined by
   // TIMER_RESOLUTION in MoppyInstrument.h) long.
-  unsigned int Buzzers::currentPeriod[] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+  unsigned int Buzzers::currentPeriod[] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
 
   // Tracks the current tick-count for each drive (see FloppyDrives::tick() below)
-  unsigned int Buzzers::currentTick[] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+  unsigned int Buzzers::currentTick[] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
 
   // The period originally set by incoming messages (prior to any modifications from pitch-bending)
-  unsigned int Buzzers::originalPeriod[] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+  unsigned int Buzzers::originalPeriod[] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
 
   void Buzzers::setup()
   {
@@ -62,7 +62,7 @@ namespace instruments
     // first drive.
     if (PLAY_STARTUP_SOUND)
     {
-      startupSound(FIRST_BUZZER);
+      startupSound(1);
       delay(500);
       resetAll();
     }
