@@ -53,6 +53,13 @@ MoppyInstrument *instrument = new instruments::ShiftRegister();
 MoppyInstrument *instrument = new instruments::ShiftedFloppyDrives();
 #endif
 
+// Floppies and LEDs connected to 74HC595 shift registers
+#ifdef INSTRUMENT_SHIFTED_LED_FLOPPIES
+#include "MoppyInstruments/ShiftedLEDFloppies.h"
+MoppyInstrument *instrument = new instruments::ShiftedLEDFloppies();
+#endif
+
+
 /**********
  * MoppyNetwork classes receive messages sent by the Controller application,
  * parse them, and use the data to call the appropriate handler as implemented
