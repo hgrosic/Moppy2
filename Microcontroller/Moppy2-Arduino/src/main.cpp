@@ -53,6 +53,12 @@ MoppyInstrument *instrument = new instruments::ShiftRegister();
 MoppyInstrument *instrument = new instruments::ShiftedFloppyDrives();
 #endif
 
+// Buzzers and LEDs connected to 74HC595 shift registers
+#ifdef INSTRUMENT_SHIFTED_LED_BUZZERS
+#include "MoppyInstruments/ShiftedLEDBuzzers.h"
+MoppyInstrument *instrument = new instruments::ShiftedLEDBuzzers();
+#endif
+
 /**********
  * MoppyNetwork classes receive messages sent by the Controller application,
  * parse them, and use the data to call the appropriate handler as implemented
