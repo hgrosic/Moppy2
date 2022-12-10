@@ -28,8 +28,8 @@
 // If a **GATEWAY** is selected, the defines after it are not really used.  
 ////
 
-#define NETWORK_SERIAL
-//#define NETWORK_UDP
+//#define NETWORK_SERIAL
+#define NETWORK_UDP
 //#define NETWORK_ESPNOW
 //#define NETWORK_ESPNOW_GATEWAY
 
@@ -40,12 +40,12 @@
 
 // Device address for this microcontroller (only messages sent to this address
 // will be processed.
-#define DEVICE_ADDRESS 0x03
+#define DEVICE_ADDRESS 0x01
 
 // Minimum and maximum sub-addresses that messages will be processed for.
 // E.g. if you have 8 drives this would be 1 and 8.  If you have 16, 1 and 16.
 #define MIN_SUB_ADDRESS 1
-#define MAX_SUB_ADDRESS 1
+#define MAX_SUB_ADDRESS 4
 
 
 #endif /* SRC_MOPPYCONFIG_H_ */

@@ -38,7 +38,7 @@ namespace instruments {
     // step and direction pins.
     #if defined(ARDUINO_AVR_UNO) || defined(ARDUINO_ARCH_ESP32)
     static const byte FIRST_DRIVE = 1;
-    static const byte LAST_DRIVE = 1; //TODO
+    static const byte LAST_DRIVE = 4; //TODO
     #elif ARDUINO_AVR_MEGA2560
     static const byte FIRST_DRIVE = 1;
     static const byte LAST_DRIVE = 16;
