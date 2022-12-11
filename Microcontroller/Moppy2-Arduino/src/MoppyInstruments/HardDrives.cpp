@@ -15,43 +15,30 @@ namespace instruments
  *
  */
 
-#if defined(ARDUINO_AVR_UNO) || defined(ARDUINO_ARCH_ESP32)
   // Array to keep track of the state of each drive.
-  unsigned int HardDrives::currentDriveState[] = {0, LOW, LOW, LOW, LOW, LOW, LOW, LOW, LOW};
+  uint8_t HardDrives::currentDriveState[] = {0, LOW, LOW, LOW, LOW};
   // Current period assigned to each drive.  0 = off.  Each period is two-ticks (as defined by
   // TIMER_RESOLUTION in MoppyInstrument.h) long.
-  unsigned int HardDrives::currentTick[] = {0, 0, 0, 0, 0, 0, 0, 0, 0};
-  const unsigned int HardDrives::PULSE_LENGTH[] = {625, 625, 625, 625, 625, 625, 625, 625, 625};
-#elif ARDUINO_AVR_MEGA2560
-  unsigned int HardDrives::currentDriveState[] = {0, LOW, LOW, LOW, LOW, LOW, LOW, LOW, LOW, LOW, LOW, LOW, LOW, LOW, LOW, LOW, LOW};
-  unsigned int HardDrives::currentTick[] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
-  const unsigned int HardDrives::PULSE_LENGTH[] = {25, 25, 25, 25, 25, 25, 25, 25, 25, 25, 25, 25, 25, 25, 25, 25, 25};
-#elif ARDUINO_ARCH_ESP8266
-  unsigned int HardDrives::currentDriveState[] = {0, LOW, LOW, LOW, LOW};
-  unsigned int HardDrives::currentTick[] = {0, 0, 0, 0, 0};
-  const unsigned int HardDrives::PULSE_LENGTH[] = {25, 25, 25, 25, 25};
-#endif
+  uint32_t HardDrives::currentTick[] = {0, 0, 0, 0, 0};
+  const uint32_t HardDrives::PULSE_LENGTH[] = {625, 625, 625, 625, 625};
 
 #ifdef ARDUINO_AVR_UNO
   // Array of A pin numbers for the used board pinout (input A of the L293D) 
-  const unsigned int HardDrives::A_PIN[] = {0, 2, 4, 6, 8, 10, 12, 14, 16};
+  const uint8_t HardDrives::A_PIN[] = {0, 2, 4, 6, 8};
   // Array of B pin numbers for the used board pinout (input B of the L293D) 
-  const unsigned int HardDrives::B_PIN[] = {0, 3, 5, 7, 9, 11, 13, 15, 17};
-#elif ARDUINO_AVR_MEGA2560
-  const unsigned int HardDrives::A_PIN[] = {0, 22, 24, 26, 28, 30, 32, 34, 36, 38, 40, 42, 44, 46, 48, 50, 52};
-  const unsigned int HardDrives::B_PIN[] = {0, 23, 25, 27, 29, 31, 33, 35, 37, 39, 41, 43, 45, 47, 49, 51, 53};
+  const uint8_t HardDrives::B_PIN[] = {0, 3, 5, 7, 9};
 #elif ARDUINO_ARCH_ESP32
-  const unsigned int HardDrives::A_PIN[] = {0, 15, 4, 17, 18, 21, 23, 33, 26};
-  const unsigned int HardDrives::B_PIN[] = {0, 2, 16, 5, 19, 22, 32, 25, 27};
+  const uint8_t HardDrives::A_PIN[] = {0, 15, 4, 17, 18};
+  const uint8_t HardDrives::B_PIN[] = {0, 2, 16, 5, 19};
 #elif ARDUINO_ARCH_ESP8266
-  const unsigned int HardDrives::A_PIN[] = {0, 5, 0, 15, 12};
-  const unsigned int HardDrives::B_PIN[] = {0, 4, 2, 13, 14};
+  const uint8_t HardDrives::A_PIN[] = {0, 5, 0, 15, 12};
+  const uint8_t HardDrives::B_PIN[] = {0, 4, 2, 13, 14};
 #endif
 
   void HardDrives::setup()
   {
     // Prepare pins
-    for (byte d = FIRST_DRIVE; d <= LAST_DRIVE; d++)
+    for (uint8_t d = FIRST_DRIVE; d <= LAST_DRIVE; d++)
     {
       pinMode(A_PIN[d], OUTPUT);
       pinMode(B_PIN[d], OUTPUT);
@@ -68,12 +55,13 @@ namespace instruments
     if (PLAY_STARTUP_SOUND)
     {
       startupSound(FIRST_DRIVE);
+      delay(500);
       resetAll();
     }
   }
 
   // Play startup sound to confirm drive functionality
-  void HardDrives::startupSound(byte driveNum)
+  void HardDrives::startupSound(uint8_t driveNum)
   {
     currentDriveState[driveNum] = HIGH;
   }
@@ -152,19 +140,17 @@ Additionally, the ICACHE_RAM_ATTR helps avoid crashes with WiFi libraries, but m
 #pragma GCC optimize("Ofast") // Required to unroll this loop, but useful to try to keep this speedy
 #ifdef ARDUINO_ARCH_ESP8266
   void ICACHE_RAM_ATTR HardDrives::tick()
-  {
 #elif ARDUINO_ARCH_ESP32
   void IRAM_ATTR HardDrives::tick()
-  {
 #else
   void HardDrives::tick()
-  {
 #endif
+  {
     /*
    For each drive, count the number of
    ticks that pass, and toggle the pin if the current period is reached.
    */
-    for (byte d = FIRST_DRIVE; d <= LAST_DRIVE; d++)
+    for (uint8_t d = FIRST_DRIVE; d <= LAST_DRIVE; d++)
     {
       if (currentDriveState[d] == HIGH)
       {
@@ -173,44 +159,37 @@ Additionally, the ICACHE_RAM_ATTR helps avoid crashes with WiFi libraries, but m
         {
           energizeCoil(d, 0);
         }
-        else if (currentTick[d] <= 2*PULSE_LENGTH[d])
+        else if (currentTick[d] <= PULSE_LENGTH[d]<<1)
         {
           energizeCoil(d, 1);
         }
         else
         {
           currentDriveState[d] = LOW;
+          deenergizeCoil(d);
         }
       }
       else
       {
-        deenergizeCoil(d);
         currentTick[d] = 0;
       }
     }
   }
-
-#pragma GCC pop_options
-
-  void HardDrives::energizeCoil(byte driveNum, byte direction)
+  
+  inline void HardDrives::energizeCoil(uint8_t driveNum, uint8_t direction)
   {
-    if (direction == 0)
-    {
-      digitalWrite(A_PIN[driveNum], HIGH);
-      digitalWrite(B_PIN[driveNum], LOW);
-    }
-    else
-    {
-      digitalWrite(A_PIN[driveNum], LOW);
-      digitalWrite(B_PIN[driveNum], HIGH);
-    }
+    digitalWrite(A_PIN[driveNum], !direction);
+    digitalWrite(B_PIN[driveNum], direction);
   }
 
-  void HardDrives::deenergizeCoil(byte driveNum)
+  inline void HardDrives::deenergizeCoil(uint8_t driveNum)
   {
     digitalWrite(A_PIN[driveNum], LOW);
     digitalWrite(B_PIN[driveNum], LOW);
   }
+
+#pragma GCC pop_options
+
   //
   //// UTILITY FUNCTIONS
   //
@@ -226,14 +205,14 @@ Additionally, the ICACHE_RAM_ATTR helps avoid crashes with WiFi libraries, but m
   // Immediately stops all drives
   void HardDrives::haltAllDrives()
   {
-    for (byte d = FIRST_DRIVE; d <= LAST_DRIVE; d++)
+    for (uint8_t d = FIRST_DRIVE; d <= LAST_DRIVE; d++)
     {
       currentDriveState[d] = LOW;
     }
   }
 
   //For a given floppy number, runs the read-head all the way back to 0
-  void HardDrives::reset(byte driveNum)
+  void HardDrives::reset(uint8_t driveNum)
   {
     currentDriveState[driveNum] = LOW; // Stop note
     currentTick[driveNum] = 0; 
@@ -249,19 +228,19 @@ Additionally, the ICACHE_RAM_ATTR helps avoid crashes with WiFi libraries, but m
   void HardDrives::resetAll()
   {
     // Stop all drives and set to reverse
-    for (byte d = FIRST_DRIVE; d <= LAST_DRIVE; d++)
+    for (uint8_t d = FIRST_DRIVE; d <= LAST_DRIVE; d++)
     {
       currentDriveState[d] = LOW; // Stop note
       currentTick[d] = 0;
       energizeCoil(d, 0);
     }
     delay(25);
-    for (byte d = FIRST_DRIVE; d <= LAST_DRIVE; d++)
+    for (uint8_t d = FIRST_DRIVE; d <= LAST_DRIVE; d++)
     {
       energizeCoil(d, 1);
     }
     delay(25);
-    for (byte d = FIRST_DRIVE; d <= LAST_DRIVE; d++)
+    for (uint8_t d = FIRST_DRIVE; d <= LAST_DRIVE; d++)
     {
       deenergizeCoil(d);
     }
