@@ -20,7 +20,7 @@ namespace instruments
   // Current period assigned to each drive.  0 = off.  Each period is two-ticks (as defined by
   // TIMER_RESOLUTION in MoppyInstrument.h) long.
   uint32_t HardDrives::currentTick[] = {0, 0, 0, 0, 0};
-  const uint32_t HardDrives::PULSE_LENGTH[] = {625, 625, 625, 625, 625};
+  const uint32_t HardDrives::PULSE_LENGTH[] = {300, 300, 300, 300, 300};
 
 #ifdef ARDUINO_AVR_UNO
   // Array of A pin numbers for the used board pinout (input A of the L293D) 
@@ -101,28 +101,19 @@ namespace instruments
 
   void HardDrives::dev_noteOff(uint8_t subAddress, uint8_t payload[])
   {
-    //energizeCoil(subAddress, 1);
-    if (currentTick[subAddress] >= 2*PULSE_LENGTH[subAddress])
-    {
-      currentDriveState[subAddress] = LOW;
-    }
+    // None
   }
 
   void HardDrives::dev_bendPitch(uint8_t subAddress, uint8_t payload[])
   {
-    //// A value from -8192 to 8191 representing the pitch deflection
-    //int16_t bendDeflection = payload[0] << 8 | payload[1];
-    //
-    //// A whole octave of bend would double the frequency (halve the the period) of notes
-    //// Calculate bend based on BEND_OCTAVES from MoppyInstrument.h and percentage of deflection
-    ////currentPeriod[subAddress] = originalPeriod[subAddress] / 1.4;
-    //currentPeriod[subAddress] = originalPeriod[subAddress] / pow(2.0, BEND_OCTAVES * (bendDeflection / (float)8192));
+    // None
   }
 
   void HardDrives::deviceMessage(uint8_t subAddress, uint8_t command, uint8_t payload[])
   {
     switch (command)
     {
+      // TODO Add system messages
     }
   }
 
@@ -155,13 +146,9 @@ Additionally, the ICACHE_RAM_ATTR helps avoid crashes with WiFi libraries, but m
       if (currentDriveState[d] == HIGH)
       {
         currentTick[d]++;
-        if (currentTick[d] <= PULSE_LENGTH[d])
+        if (currentTick[d] < PULSE_LENGTH[d])
         {
           energizeCoil(d, 0);
-        }
-        else if (currentTick[d] <= PULSE_LENGTH[d]<<1)
-        {
-          energizeCoil(d, 1);
         }
         else
         {
@@ -216,10 +203,6 @@ Additionally, the ICACHE_RAM_ATTR helps avoid crashes with WiFi libraries, but m
   {
     currentDriveState[driveNum] = LOW; // Stop note
     currentTick[driveNum] = 0; 
-    energizeCoil(driveNum, 0);
-    delay(25);
-    energizeCoil(driveNum, 1);
-    delay(25);
     deenergizeCoil(driveNum);
     delay(5);
   }
@@ -232,16 +215,6 @@ Additionally, the ICACHE_RAM_ATTR helps avoid crashes with WiFi libraries, but m
     {
       currentDriveState[d] = LOW; // Stop note
       currentTick[d] = 0;
-      energizeCoil(d, 0);
-    }
-    delay(25);
-    for (uint8_t d = FIRST_DRIVE; d <= LAST_DRIVE; d++)
-    {
-      energizeCoil(d, 1);
-    }
-    delay(25);
-    for (uint8_t d = FIRST_DRIVE; d <= LAST_DRIVE; d++)
-    {
       deenergizeCoil(d);
     }
     delay(5);

@@ -33,8 +33,10 @@ bool MoppyUDP::startUDP() {
     Serial.println("Connecting to UDP");
 
 #ifdef ARDUINO_ARCH_ESP8266
+    WiFi.setSleepMode(WIFI_NONE_SLEEP);
     if (UDP.beginMulticast(WiFi.localIP(), IPAddress(239, 2, 2, 7), MOPPY_UDP_PORT) == 1) {
 #elif ARDUINO_ARCH_ESP32
+    WiFi.setSleep(false);
     if (UDP.beginMulticast(IPAddress(239, 2, 2, 7), MOPPY_UDP_PORT) == 1) {
 #endif
         Serial.println("Connection successful");
