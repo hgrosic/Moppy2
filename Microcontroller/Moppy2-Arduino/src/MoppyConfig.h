@@ -11,22 +11,26 @@
 
 ////
 // Uncomment **ONLY ONE** of these instruments
+// If the device is a gateway, select INTRUMENT_NONE
 ////
 
-#define INSTRUMENT_FLOPPIES
+//#define INSTRUMENT_FLOPPIES
 //#define INSTRUMENT_BUZZERS
 //#define INSTRUMENT_EASYDRIVER
 //#define INSTRUMENT_L298N
 //#define INSTRUMENT_SHIFTED_FLOPPIES
 //#define INSTRUMENT_SHIFT_REGISTER
-
+#define INSTRUMENT_NONE
 
 ////
 // Uncomment **ONLY ONE** of these networks
+// If a **GATEWAY** is selected, the defines after it are not really used.  
 ////
 
-#define NETWORK_SERIAL
+//#define NETWORK_SERIAL
 //#define NETWORK_UDP
+//#define NETWORK_ESPNOW
+#define NETWORK_ESPNOW_GATEWAY
 
 // Play a startup sound when the Arduino is initialized.  Helpful
 // for debugging purposes, but can be turned off once everything
