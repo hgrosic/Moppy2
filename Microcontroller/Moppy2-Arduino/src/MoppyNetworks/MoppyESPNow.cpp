@@ -7,6 +7,10 @@
  * Serial communications implementation for Arduino.  Instrument
  * has its handler functions called for device and system messages
  */
+uint8_t messageLength = 0;         
+bool newDataAvailable = false;                                  // Flag if there is new data to be processed
+uint8_t gwMacAddress[6] = {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF}; // MAC Address of the ESP-Now gateway to which to respond to
+
 MoppyESPNow::MoppyESPNow(MoppyMessageConsumer *messageConsumer) {
     targetConsumer = messageConsumer;
 }
@@ -25,13 +29,12 @@ void MoppyESPNow::begin() {
     }
     // Register callback functions
     using namespace std::placeholders;
-    // Using "bind" because in order to adapt member method for free function passing
-    if (esp_now_register_recv_cb(std::bind(&MoppyESPNow::onDataReceived, *this, _1, _2, _3)) != ESP_OK) {
+    if (esp_now_register_recv_cb(&MoppyESPNow::onDataReceived) != ESP_OK) {
         Serial.println("Registering ESP-NOW Receive Callback failed");
         return;
     }
     Serial.println("Registering ESP-NOW Receive Callback successful");
-    if (esp_now_register_send_cb(std::bind(&MoppyESPNow::onDataSent, *this, _1, _2)) != ESP_OK) {
+    if (esp_now_register_send_cb(&MoppyESPNow::onDataSent) != ESP_OK) {
         Serial.println("Registering ESP-NOW Send Callback failed");
         return;
     }

@@ -22,12 +22,12 @@ void MoppyESPNowGateway::begin() {
         return;
     }
     // Register callback functions
-    if (esp_now_register_recv_cb(std::bind(&MoppyESPNowGateway::onDataReceived, *this, _1, _2, _3)) != ESP_OK) {
+    if (esp_now_register_recv_cb(&MoppyESPNowGateway::onDataReceived) != ESP_OK) {
         //Serial.println("Registering ESP-NOW Receive Callback failed");
         return;
     }
     //Serial.println("Registering ESP-NOW Receive Callback successful");
-    if (esp_now_register_send_cb(std::bind(&MoppyESPNowGateway::onDataSent, *this, _1, _2)) != ESP_OK) {
+    if (esp_now_register_send_cb(&MoppyESPNowGateway::onDataSent) != ESP_OK) {
         //Serial.println("Registering ESP-NOW Send Callback failed");
         return;
     }

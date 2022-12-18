@@ -33,8 +33,8 @@ private:
     void broadcastESPNowMessage();
     void parseMessage(uint8_t message[], int length);
     void sendPong();
-    void onDataReceived(const uint8_t * macAddr, const uint8_t * incomingData, int dataLength);
-    void onDataSent(const uint8_t * macAddr, esp_now_send_status_t status);
+    static void onDataReceived(const uint8_t * macAddr, const uint8_t * incomingData, int dataLength);
+    static void onDataSent(const uint8_t * macAddr, esp_now_send_status_t status);
 };
 
 

@@ -30,15 +30,15 @@ public:
 
 private:
     MoppyMessageConsumer * targetConsumer;
-    uint8_t messageBuffer[MOPPY_MAX_PACKET_LENGTH]; // Max message length for Moppy messages is 259
-    uint8_t messageLength = 0;
-    bool newDataAvailable = false;                  // Flag if there is newdata to be processed
-    uint8_t gwMacAddress[6] = {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF};
+    static uint8_t messageBuffer[MOPPY_MAX_PACKET_LENGTH]; // Max message length for Moppy messages is 259
+    static uint8_t messageLength;
+    static bool newDataAvailable;                  // Flag if there is newdata to be processed
+    static uint8_t gwMacAddress[6];
     const uint8_t pongBytes[8] = {START_BYTE, 0x00, 0x00, 0x04, 0x81, DEVICE_ADDRESS, MIN_SUB_ADDRESS, MAX_SUB_ADDRESS};
-    void onDataReceived(const uint8_t * macAddr, const uint8_t * incomingData, int dataLength);
-    void onDataSent(const uint8_t * macAddr, esp_now_send_status_t status);
     void parseMessage(uint8_t message[], int length);
     void sendPong();
+    static void onDataReceived(const uint8_t * macAddr, const uint8_t * incomingData, int dataLength);
+    static void onDataSent(const uint8_t * macAddr, esp_now_send_status_t status);
 };
 
 #endif /* SRC_MOPPYNETWORKS_MOPPYESPNOW_H_ */

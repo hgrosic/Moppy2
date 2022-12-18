@@ -75,6 +75,7 @@ MoppyESPNow network = MoppyESPNow(instrument);
 
 //// Standard Arduino HardwareSerial ---> ESP-Now Gateway Implementation
 #ifdef NETWORK_ESPNOW_GATEWAY
+#define INSTRUMENT_NONE
 #include "MoppyNetworks/MoppyESPNowGateway.h"
 MoppyESPNowGateway network = MoppyESPNowGateway();
 #endif
