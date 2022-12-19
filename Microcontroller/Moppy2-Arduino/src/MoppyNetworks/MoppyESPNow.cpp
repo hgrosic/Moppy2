@@ -7,9 +7,10 @@
  * Serial communications implementation for Arduino.  Instrument
  * has its handler functions called for device and system messages
  */
-uint8_t messageLength = 0;         
-bool newDataAvailable = false;                                  // Flag if there is new data to be processed
-uint8_t gwMacAddress[6] = {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF}; // MAC Address of the ESP-Now gateway to which to respond to
+uint8_t MoppyESPNow::messageBuffer[MOPPY_MAX_PACKET_LENGTH];
+uint8_t MoppyESPNow::messageLength = 0;         
+bool MoppyESPNow::newDataAvailable = false;                                  // Flag if there is new data to be processed
+uint8_t MoppyESPNow::gwMacAddress[6] = {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF}; // MAC Address of the ESP-Now gateway to which to respond to
 
 MoppyESPNow::MoppyESPNow(MoppyMessageConsumer *messageConsumer) {
     targetConsumer = messageConsumer;
@@ -60,6 +61,7 @@ void MoppyESPNow::readMessages() {
     if (newDataAvailable) {
         // Parse
         parseMessage(messageBuffer, messageLength);
+        newDataAvailable = false;
     }
 }
 

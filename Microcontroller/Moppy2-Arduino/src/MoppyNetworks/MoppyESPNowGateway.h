@@ -29,7 +29,6 @@ private:
     uint8_t messageLength = 0;
     bool newDataAvailable = false;
     const uint8_t broadcastMacAddress[6] = {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF};
-    const uint8_t pongBytes[8] = {START_BYTE, 0x00, 0x00, 0x04, 0x81, DEVICE_ADDRESS, MIN_SUB_ADDRESS, MAX_SUB_ADDRESS};
     void broadcastESPNowMessage();
     void parseMessage(uint8_t message[], int length);
     void sendPong();

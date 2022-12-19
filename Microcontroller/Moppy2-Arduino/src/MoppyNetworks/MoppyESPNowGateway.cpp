@@ -15,7 +15,7 @@ void MoppyESPNowGateway::begin() {
     // Set ESP32 as a Wi-Fi Station
     WiFi.mode(WIFI_STA);
     //Serial.print("Detected MAC address of gateway: ");
-    Serial.println(WiFi.macAddress());
+    //Serial.println(WiFi.macAddress());
     // Initilize ESP-NOW
     if (esp_now_init() != ESP_OK) {
         //Serial.println("Initializing ESP-NOW failed");
@@ -32,7 +32,7 @@ void MoppyESPNowGateway::begin() {
         return;
     }
     //Serial.println("Registering ESP-NOW Send Callback successful");
-    //Serial.println("Gateway is up and running")
+    //Serial.println("Gateway is up and running");
 }
 
 // Callback function executed when data is received
@@ -66,13 +66,13 @@ void MoppyESPNowGateway::readMessages() {
         case 0:
             if (Serial.read() == START_BYTE) {
                 messageBuffer[0] = START_BYTE;
-                messagePos = 1;
+                messagePos++;
             }
             break;
         case 1:
         case 2:
         case 3:
-            messageBuffer[1] = Serial.read();
+            messageBuffer[messagePos] = Serial.read();
             messagePos++;
             break;
         case 4:
@@ -92,7 +92,7 @@ void MoppyESPNowGateway::broadcastESPNowMessage() {
     if (!esp_now_is_peer_exist(broadcastMacAddress)) {
       esp_now_add_peer(&broadcastPeerInfo);
     }
-    esp_err_t result = esp_now_send(broadcastMacAddress, pongBytes, 4 + messageBuffer[3]);
+    esp_now_send(broadcastMacAddress, messageBuffer, 4 + messageBuffer[3]);
 }
 
 #endif /* ARDUINO_ARCH_ESP8266 or ARDUINO_ARCH_ESP32 */
