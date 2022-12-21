@@ -2,15 +2,14 @@
 
 #if !defined ARDUINO_ARCH_ESP8266 && !defined ARDUINO_ARCH_ESP32
 #else
-
 /*
- * Serial communications implementation for Arduino.  Instrument
- * has its handler functions called for device and system messages
+ * ESP-Now communication implementation for ESP8266/ESP32 devices.  
+ * Instrument has its handler functions called for device and system messages
  */
-uint8_t MoppyESPNow::messageBuffer[MOPPY_MAX_PACKET_LENGTH];
-uint8_t MoppyESPNow::messageLength = 0;         
-bool MoppyESPNow::newDataAvailable = false;                                  // Flag if there is new data to be processed
-uint8_t MoppyESPNow::gwMacAddress[6] = {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF}; // MAC Address of the ESP-Now gateway to which to respond to
+std::queue<uint8_t> MoppyESPNow::messageQueue; // Queue for the incoming messages
+uint8_t MoppyESPNow::messageBuffer[MOPPY_MAX_PACKET_LENGTH]; // Buffer for the current message
+volatile bool MoppyESPNow::sendingCompleted = true; // Signalizes that new data can be sent
+uint8_t MoppyESPNow::gwMacAddress[6]; // MAC Address of the ESP-Now gateway to which to respond to
 
 MoppyESPNow::MoppyESPNow(MoppyMessageConsumer *messageConsumer) {
     targetConsumer = messageConsumer;
@@ -19,50 +18,49 @@ MoppyESPNow::MoppyESPNow(MoppyMessageConsumer *messageConsumer) {
 void MoppyESPNow::begin() {
     // Serial for debugging
     Serial.begin(115200);
-    // Set ESP32 as a Wi-Fi Station
+    // Initialize WiFi stack
     WiFi.mode(WIFI_STA);
+    // Disable sleep mode
+    WiFi.setSleep(false);
     Serial.print("Detected MAC address of instrument: ");
     Serial.println(WiFi.macAddress());
+    // Change WiFi channel
+    if (esp_wifi_set_channel(MOPPY_WIFI_CHANNEL, WIFI_SECOND_CHAN_NONE) != ESP_OK) {
+        Serial.println("ERROR - Changing WiFi channel failed");
+        return;
+    }
     // Initilize ESP-NOW
     if (esp_now_init() != ESP_OK) {
-        Serial.println("Initializing ESP-NOW failed");
+        Serial.println("ERROR - Initializing ESP-NOW failed");
         return;
     }
     // Register callback functions
-    using namespace std::placeholders;
-    if (esp_now_register_recv_cb(&MoppyESPNow::onDataReceived) != ESP_OK) {
-        Serial.println("Registering ESP-NOW Receive Callback failed");
-        return;
-    }
-    Serial.println("Registering ESP-NOW Receive Callback successful");
     if (esp_now_register_send_cb(&MoppyESPNow::onDataSent) != ESP_OK) {
-        Serial.println("Registering ESP-NOW Send Callback failed");
+        Serial.println("ERROR - Registering ESP-NOW OnSent Callback failed");
         return;
     }
-    Serial.println("Registering ESP-NOW Send Callback successful");
+    if (esp_now_register_recv_cb(&MoppyESPNow::onDataReceived) != ESP_OK) {
+        Serial.println("ERROR - Registering ESP-NOW OnReceived Callback failed");
+        return;
+    }
+    Serial.println("SUCCES - Instrument is up and running");
 }
 
 // Callback function executed when data is received
 void MoppyESPNow::onDataReceived(const uint8_t * macAddr, const uint8_t * incomingData, int dataLength) {
-    newDataAvailable = true;
-    memcpy(gwMacAddress, macAddr, 6);
-    messageLength = min(dataLength, MOPPY_MAX_PACKET_LENGTH);
-    memcpy(messageBuffer, incomingData, messageLength);
+    memcpy(gwMacAddress, macAddr, 6); // The message comes from the gateway
+    for (uint8_t i = 0; i < dataLength; i++)
+    {
+        messageQueue.push(incomingData[i]);
+    }
 }
 
 // Callback function executed when data is sent
 void MoppyESPNow::onDataSent(const uint8_t * macAddr, esp_now_send_status_t status) {
     if (status != ESP_NOW_SEND_SUCCESS) {
-        Serial.println("Pong response could not be sent");
+        Serial.println("ERROR - Pong response could not be sent");
     }
-}
-
-void MoppyESPNow::readMessages() {
-    if (newDataAvailable) {
-        // Parse
-        parseMessage(messageBuffer, messageLength);
-        newDataAvailable = false;
-    }
+    sendingCompleted = true;
 }
 
 /* MoppyMessages contain the following bytes:
@@ -73,30 +71,79 @@ void MoppyESPNow::readMessages() {
  *  4    - Command byte
  *  5... - Optional payload
  */
-void MoppyESPNow::parseMessage(uint8_t message[], int length) {
-    if (length < 5 || message[0] != START_BYTE || length != (4 + message[3])) {
-        return; // Message is too short, not a Moppy Message, or wrongly sized
-    }
-
-    // Only worry about this if it's addressed to us
-    if (message[1] == SYSTEM_ADDRESS) {
-        if (messageBuffer[4] == NETBYTE_SYS_PING) {
-            sendPong(); // Respond with pong if requested
-        } else {
-            targetConsumer->handleSystemMessage(messageBuffer[4], &messageBuffer[5]);
+void MoppyESPNow::readMessages() {
+    // If we're waiting for position 4, then we know how many bytes we're waiting for, no need
+    // to start reading until they're all there.
+    while ((messagePos != 4 && !messageQueue.empty()) || (messagePos == 4 && messageQueue.size() >= messageBuffer[3])) {
+        switch (messagePos) {
+        case 0:
+            if (messageQueue.front() == START_BYTE) {
+                messageBuffer[messagePos] = messageQueue.front();
+                messagePos++;
+            }
+            messageQueue.pop();
+            break;
+        case 1:
+            if (messageQueue.front() == SYSTEM_ADDRESS || messageQueue.front() == DEVICE_ADDRESS) {
+                messageBuffer[messagePos] = messageQueue.front();
+                messagePos++; 
+            }
+            else {
+                messagePos = 0; // This message isn't for us
+            }
+            messageQueue.pop();
+            break;
+        case 2:
+            if (messageQueue.front() == 0x00 || (messageQueue.front() >= MIN_SUB_ADDRESS && messageQueue.front() <= MAX_SUB_ADDRESS)) {
+                messageBuffer[messagePos] = messageQueue.front();
+                messagePos++; // Valid subAddress, continue
+            }
+            else {
+                messagePos = 0; // Not listening to this subAddress, skip this message
+            }
+            messageQueue.pop();
+            break;
+        case 3:
+            messageBuffer[messagePos] = messageQueue.front();
+            messagePos++;
+            messageQueue.pop();
+            break;
+        case 4:
+            // Read command and payload
+            for (uint8_t i = 0; i < messageBuffer[3]; i++) {
+                messageBuffer[messagePos + i] = messageQueue.front();
+                messageQueue.pop();
+            }
+            // Call appropriate handler
+            if (messageBuffer[1] == SYSTEM_ADDRESS) {
+                if (messageBuffer[4] == NETBYTE_SYS_PING) {
+                    sendPong(); // Respond with pong if requested
+                } 
+                else {
+                    targetConsumer->handleSystemMessage(messageBuffer[4], &messageBuffer[5]);
+                }
+            } 
+            else {
+                targetConsumer->handleDeviceMessage(messageBuffer[2], messageBuffer[4], &messageBuffer[5]);
+            }
+            messagePos = 0; // Start looking for a new message in the queue
         }
-    } else if (message[1] == DEVICE_ADDRESS) {
-        targetConsumer->handleDeviceMessage(messageBuffer[2], messageBuffer[4], &messageBuffer[5]);
     }
 }
 
 void MoppyESPNow::sendPong() {
-    esp_now_peer_info_t gwPeerInfo = {};
-    memcpy(&gwPeerInfo.peer_addr, gwMacAddress, 6);
     if (!esp_now_is_peer_exist(gwMacAddress)) {
-      esp_now_add_peer(&gwPeerInfo);
+        esp_now_peer_info_t gwPeerInfo;
+        memcpy(&gwPeerInfo.peer_addr, gwMacAddress, 6);
+        gwPeerInfo.channel = MOPPY_WIFI_CHANNEL;  
+        gwPeerInfo.encrypt = false;
+        if (esp_now_add_peer(&gwPeerInfo) != ESP_OK){
+            //Serial.println("ERROR - Adding gateway peer failed");
+            return;
+        }
     }
-    esp_err_t result = esp_now_send(gwMacAddress, pongBytes, 8);
+    sendingCompleted = false;
+    esp_now_send(gwMacAddress, pongBytes, 8);
     //if (result == ESP_OK)
     //{
     //  Serial.println("Broadcast message success");

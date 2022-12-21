@@ -4,35 +4,51 @@
 #else
 
 /*
- * ESP-Now gateway implementation. Data incomming on serial is relayed
- * as ESP-Now broadcasts.
+ * ESP-Now gateway implementation for ESP8266/ESP32 devices. 
+ * Data incomming on serial is relayed as ESP-Now broadcasts.
  */
+volatile bool MoppyESPNowGateway::sendingCompleted = true; // Signalizes that new data can be sent
+
 MoppyESPNowGateway::MoppyESPNowGateway() {
 }
 
 void MoppyESPNowGateway::begin() {
     Serial.begin(115200);
-    // Set ESP32 as a Wi-Fi Station
+    // Initialize WiFi stack
     WiFi.mode(WIFI_STA);
+    // Disable sleep mode
+    WiFi.setSleep(false);
     //Serial.print("Detected MAC address of gateway: ");
     //Serial.println(WiFi.macAddress());
+    // Change WiFi channel
+    if (esp_wifi_set_channel(MOPPY_WIFI_CHANNEL, WIFI_SECOND_CHAN_NONE) != ESP_OK) {
+        //Serial.println("ERROR - Changing WiFi channel failed");
+        return;
+    }
     // Initilize ESP-NOW
     if (esp_now_init() != ESP_OK) {
-        //Serial.println("Initializing ESP-NOW failed");
+        //Serial.println("ERROR - Initializing ESP-NOW failed");
+        return;
+    }
+    // Add broadcast peer
+    esp_now_peer_info_t broadcastPeerInfo;
+    memcpy(broadcastPeerInfo.peer_addr, broadcastMacAddress, 6);
+    broadcastPeerInfo.channel = MOPPY_WIFI_CHANNEL;  
+    broadcastPeerInfo.encrypt = false;
+    if (esp_now_add_peer(&broadcastPeerInfo) != ESP_OK){
+        //Serial.println("ERROR - Adding broadcast peer failed");
         return;
     }
     // Register callback functions
-    if (esp_now_register_recv_cb(&MoppyESPNowGateway::onDataReceived) != ESP_OK) {
-        //Serial.println("Registering ESP-NOW Receive Callback failed");
-        return;
-    }
-    //Serial.println("Registering ESP-NOW Receive Callback successful");
     if (esp_now_register_send_cb(&MoppyESPNowGateway::onDataSent) != ESP_OK) {
-        //Serial.println("Registering ESP-NOW Send Callback failed");
+        //Serial.println("ERROR - Registering ESP-NOW OnSent Callback failed");
         return;
     }
-    //Serial.println("Registering ESP-NOW Send Callback successful");
-    //Serial.println("Gateway is up and running");
+    if (esp_now_register_recv_cb(&MoppyESPNowGateway::onDataReceived) != ESP_OK) {
+        //Serial.println("ERROR - Registering ESP-NOW OnReceived Callback failed");
+        return;
+    }
+    //Serial.println("SUCCES - Gateway is up and running");
 }
 
 // Callback function executed when data is received
@@ -44,8 +60,9 @@ void MoppyESPNowGateway::onDataReceived(const uint8_t * macAddr, const uint8_t *
 // Callback function executed when data is sent
 void MoppyESPNowGateway::onDataSent(const uint8_t * macAddr, esp_now_send_status_t status) {
     //if (status != ESP_NOW_SEND_SUCCESS) {
-    //    Serial.println("Broadcast message could not be sent");
+    //    Serial.println("ERROR - Broadcast message could not be sent");
     //}
+    sendingCompleted = true;
 }
 
 /* MoppyMessages contain the following bytes:
@@ -65,8 +82,11 @@ void MoppyESPNowGateway::readMessages() {
         switch (messagePos) {
         case 0:
             if (Serial.read() == START_BYTE) {
-                messageBuffer[0] = START_BYTE;
+                messageBuffer[messagePos] = START_BYTE;
                 messagePos++;
+            }
+            else {
+                messagePos = 0;
             }
             break;
         case 1:
@@ -79,20 +99,15 @@ void MoppyESPNowGateway::readMessages() {
             // Read command and payload
             Serial.readBytes(messageBuffer + 4, messageBuffer[3]);
             // Broadcast message over ESP-Now
-            broadcastESPNowMessage();
-
-            messagePos = 0; // Start looking for a new message
+            while (!sendingCompleted) {
+                // Wait if the latest send action is still ongoing
+                delay(1);
+            }
+            sendingCompleted = false;
+            esp_now_send(broadcastMacAddress, messageBuffer, 4 + messageBuffer[3]);
+            messagePos = 0; // Start looking for a new message on serial
         }
     }
-}
-
-void MoppyESPNowGateway::broadcastESPNowMessage() {
-    esp_now_peer_info_t broadcastPeerInfo = {};
-    memcpy(&broadcastPeerInfo.peer_addr, broadcastMacAddress, 6);
-    if (!esp_now_is_peer_exist(broadcastMacAddress)) {
-      esp_now_add_peer(&broadcastPeerInfo);
-    }
-    esp_now_send(broadcastMacAddress, messageBuffer, 4 + messageBuffer[3]);
 }
 
 #endif /* ARDUINO_ARCH_ESP8266 or ARDUINO_ARCH_ESP32 */

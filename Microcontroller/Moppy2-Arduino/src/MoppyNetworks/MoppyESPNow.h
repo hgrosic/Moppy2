@@ -18,9 +18,12 @@
 #include <WiFi.h>
 #endif
 #include <esp_now.h>
+#include <esp_wifi.h>
 #include <stdint.h>
+#include <queue>
 
 #define MOPPY_MAX_PACKET_LENGTH ESP_NOW_MAX_DATA_LEN
+#define MOPPY_WIFI_CHANNEL 1
 
 class MoppyESPNow {
 public:
@@ -30,12 +33,12 @@ public:
 
 private:
     MoppyMessageConsumer * targetConsumer;
-    static uint8_t messageBuffer[MOPPY_MAX_PACKET_LENGTH]; // Max message length for Moppy messages is 259
-    static uint8_t messageLength;
-    static bool newDataAvailable;                  // Flag if there is newdata to be processed
-    static uint8_t gwMacAddress[6];
+    static std::queue<uint8_t> messageQueue;                // Queue for the incoming messages
+    static uint8_t messageBuffer[MOPPY_MAX_PACKET_LENGTH];  // Buffer for the current message
+    uint8_t messagePos = 0;                                 // Tracks current message read position 
+    volatile static bool sendingCompleted;                  // Signalizes that new data can be sent
+    static uint8_t gwMacAddress[6];                // MAC Address of the ESP-Now gateway to which to respond to
     const uint8_t pongBytes[8] = {START_BYTE, 0x00, 0x00, 0x04, 0x81, DEVICE_ADDRESS, MIN_SUB_ADDRESS, MAX_SUB_ADDRESS};
-    void parseMessage(uint8_t message[], int length);
     void sendPong();
     static void onDataReceived(const uint8_t * macAddr, const uint8_t * incomingData, int dataLength);
     static void onDataSent(const uint8_t * macAddr, esp_now_send_status_t status);

@@ -23,7 +23,7 @@ MoppyInstrument *instrument = new instruments::FloppyDrives();
 MoppyInstrument *instrument = new instruments::Buzzers();
 #endif
 
-// TODO
+// Hard drives connected to L293/298 motor drivers
 #ifdef INSTRUMENT_HARDDRIVES
 #include "MoppyInstruments/HardDrives.h"
 MoppyInstrument *instrument = new instruments::HardDrives();
@@ -81,7 +81,6 @@ MoppyESPNow network = MoppyESPNow(instrument);
 
 //// Standard Arduino HardwareSerial ---> ESP-Now Gateway Implementation
 #ifdef NETWORK_ESPNOW_GATEWAY
-#define INSTRUMENT_NONE
 #include "MoppyNetworks/MoppyESPNowGateway.h"
 MoppyESPNowGateway network = MoppyESPNowGateway();
 #endif
@@ -89,7 +88,7 @@ MoppyESPNowGateway network = MoppyESPNowGateway();
 //The setup function is called once at startup of the sketch
 void setup()
 {
-    #ifndef INSTRUMENT_NONE
+    #ifndef INSTRUMENT_GATEWAY
     // Call setup() on the instrument to allow to to prepare for action
     instrument->setup();
     #endif
