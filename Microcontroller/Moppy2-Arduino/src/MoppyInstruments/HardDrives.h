@@ -31,25 +31,18 @@ namespace instruments {
   private:
     static uint8_t currentDriveState[];
     static uint32_t currentTick[];
-    static const uint8_t A_PIN[];
-    static const uint8_t B_PIN[];
-    static const uint32_t PULSE_LENGTH[];
-    // First drive being used for floppies, and the last drive.  Used for calculating
-    // step and direction pins.
-    static const uint8_t FIRST_DRIVE = 1;
-    static const uint8_t LAST_DRIVE = 4; //TODO
+    static const uint8_t EN_PIN[];        // Control pins for each drive
+    static const uint32_t PULSE_LENGTH[]; // Length of the magnetization pulse for each drive
+    static const uint8_t FIRST_DRIVE = MIN_SUB_ADDRESS;
+    static const uint8_t LAST_DRIVE = MAX_SUB_ADDRESS;
     
-    // Maximum note number to attempt to play on floppy drives.  It's possible higher notes may work,
-    // but they may also cause instability.
-    static const uint8_t MAX_FLOPPY_NOTE = 71;
-
     static void resetAll();
     static void haltAllDrives();
     static void reset(uint8_t driveNum);
     static void tick();
     static void blinkLED();
     static void startupSound(uint8_t driveNum);
-    static void energizeCoil(uint8_t driveNum, uint8_t direction);
+    static void energizeCoil(uint8_t driveNum);
     static void deenergizeCoil(uint8_t driveNum);
   };
 }
